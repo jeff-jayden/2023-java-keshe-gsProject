@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>login</title>
+    <link href="/gsProject/css/login.css" rel="stylesheet">
+</head>
+
+<body>
+<div id="loginDiv">
+    <form action="/gsProject/loginServlet/login" method="post">
+        <h1 id="loginMsg">LOGIN IN</h1>
+        <p id="ERR_message" th:text="${ERR_message}"></p>
+        <!--        <div id="errorMsg">用户名或密码不正确</div>-->
+        <p>
+            <label for="username">Username:</label>
+            <input id="username" name="username" type="text" required>
+        </p>
+        <p>
+            <label for="password">Password:</label>
+            <input id="password" name="password" type="password" required>
+        </p>
+        <p>
+            <span class="inputs">
+                验证码
+                <input name="checkCode" type="text" id="checkCode">
+                <img id="checkCodeImg" src="/gsProject/checkCodeServlet">
+            </span>
+        </p>
+        <p>
+            <!--            记住我功能-->
+            <label for="remember">Remember:</label>
+            <input id="remember" name="remember" type="checkbox" value="1">
+            <!--            自动登录功能-->
+            <!--<label for="autolog">AutoLogin:</label>
+            <input id="autolog" name="autolog" type="checkbox" value="1">-->
+        </p>
+        <div id="ideDiv">
+            <span>
+                <label for="admin">管理员</label>
+                <input id="admin" name="identity" type="radio" value="1">
+            </span>
+            <span>
+                <label for="teacher">教师</label>
+                <input id="teacher" name="identity" type="radio" value="2">
+            </span>
+            <span>
+                <label for="student">学生</label>
+                <input id="student" name="identity" type="radio" value="3">
+            </span>
+        </div>
+        <div id="subDiv">
+            <input type="submit" class="button" value="login in">
+            <input type="reset" class="button" value="reset">
+            <!--            <a href="register.html">没有账号？</a>-->
+        </div>
+    </form>
+</div>
+
+</body>
+<script src="../js/jquery-3.7.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $.post("/gsProject/rememberServer", function (data) {
+            $("#username").val(data.username);
+            $("#password").val(data.password);
+        }, "json");
+    });
+
+    document.getElementById("checkCodeImg").onclick = function () {
+        //路径后面添加时间戳的目的是避免浏览器进行缓存静态资源
+        document.getElementById("checkCodeImg").src = "/gsProject/checkCodeServlet?" + new Date().getMilliseconds();
+    }
+</script>
+
+</html>

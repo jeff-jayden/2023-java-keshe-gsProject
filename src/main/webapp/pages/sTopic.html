@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>学生选择课题页面</title>
+</head>
+<body>
+<div id="app">
+    <!--    搜索表单-->
+    <el-form :inline="true" :model="ruleForm" class="demo-form-inline">
+        <el-form-item label="搜索题目名称：">
+            <el-input v-model="ruleForm.toname" placeholder="请输入题目名称"></el-input>
+        </el-form-item>
+        <el-form-item label="搜索题目类型：">
+            <el-input v-model="ruleForm.ttype" placeholder="请输入题目类型"></el-input>
+        </el-form-item>
+        <el-form-item>
+            <el-button type="primary" @click="onSubmit">查询</el-button>
+        </el-form-item>
+    </el-form>
+
+    <!--    主页显示表格-->
+    <template>
+        <el-table
+                ref="multipleTable"
+                :data="tableData"
+                tooltip-effect="dark"
+                style="width: 100%"
+                @selection-change="handleSelectionChange">
+            <el-table-column
+                    prop="toname"
+                    label="题目名称"
+                    align="center">
+
+            </el-table-column>
+            <el-table-column
+                    prop="ttype"
+                    label="题目类型"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="tbackground"
+                    label="题目背景"
+                    align="center">
+            </el-table-column>
+            <el-table-column
+                    prop="tdescription"
+                    label="题目描述"
+                    align="center"
+                    height="250px"
+            >
+            </el-table-column>
+            <el-table-column
+                    prop="statusStr"
+                    label="选题状态"
+                    align="center"
+            >
+            </el-table-column>
+            <el-table-column label="操作"
+                             align="center">
+                <template slot-scope="scope">
+                    <el-button
+                            size="mini"
+                            type="primary"
+                            @click="selectTopic(scope.$index, scope.row)">选择
+                    </el-button>
+                    <el-button
+                            size="mini"
+                            type="danger"
+                            @click="removeTopic(scope.$index, scope.row)">移除
+                    </el-button>
+                </template>
+            </el-table-column>
+        </el-table>
+    </template>
+
+    <!--分页工具条-->
+    <el-pagination
+            @size-change="handleSizeChange"
+            @current-change="handleCurrentChange"
+            :current-page="currentPage"
+            :page-sizes="[5, 10, 15, 20]"
+            :page-size="pageSize"
+            layout="total, sizes, prev, pager, next, jumper"
+            :total="totalCount">
+    </el-pagination>
+</div>
+
+<script src="../js/vue.js"></script>
+<script src="../js/axios-0.18.0.js"></script>
+<script src="../element-ui/lib/index.js"></script>
+<link rel="stylesheet" href="../element-ui/lib/theme-chalk/index.css">
+<script>
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                pageSize: 5,
+                totalCount: 30,
+                currentPage: 1,
+                multipleSelection: [],
+                dialogVisible: false,
+                dialogVisible2: false,
+                ruleForm: {
+                    toname: '',
+                    ttype: '',
+                    tbackground: '',
+                    tdescription: ''
+                },
+                tableData: []
+            }
+        },
+
+        mounted() {
+            this.selectAllAndCondition();
+        },
+
+        methods: {
+            onSubmit() {
+                this.selectAllAndCondition();
+            },
+
+            removeTopic(index, row) {
+                axios.get(`http://localhost:8080/gsProject/student/removeTopic?id=${row.id}`).then((resp) => {
+                    if (resp.data.code == `20031`) {
+                        this.$message({
+                            message: '移除成功',
+                            type: 'success'
+                        });
+                        this.selectAllAndCondition();
+                    } else {
+                        this.$message({
+                            message: '已移除，请勿重复操作',
+                            type: 'warning'
+                        });
+                    }
+                })
+            },
+
+            selectTopic(index, row) {
+                axios.get(`http://localhost:8080/gsProject/student/selectTopic?id=${row.id}`).then((resp) => {
+                    if (resp.data.code == `20031`) {
+                        this.$message({
+                            message: '选择成功',
+                            type: 'success'
+                        });
+                        this.selectAllAndCondition();
+                    } else {
+                        this.$message({
+                            message: '已选择题目，请先移除',
+                            type: 'warning'
+                        });
+                    }
+                })
+            },
+            //分页查询
+            selectAllAndCondition() {
+                axios.post("http://localhost:8080/gsProject/topic/selectByPageAndCondition?currentPage=" + this.currentPage + "&pageSize=" + this.pageSize, this.ruleForm).then((resp) => {
+                    this.tableData = resp.data.rows;
+                    this.totalCount = resp.data.totalCount;
+                })
+            },
+
+
+            //分页  Size改变函数
+            handleSizeChange(val) { //我们选择的是 ‘5条/页’ 此值就是 5.而我们选择了 `10条/页` 此值就是 10
+                // 重新设置每页显示的条数
+                this.pageSize = val;
+                //调用 selectAll 函数重新分页查询数据
+                this.selectAllAndCondition();
+            },
+            //Page改变
+            handleCurrentChange(val) { //val 就是改变后的页码
+                // 重新设置当前页码
+                this.currentPage = val;
+                //调用 selectAll 函数重新分页查询数据
+                this.selectAllAndCondition();
+            }
+        }
+    })
+</script>
+</body>
+</html>
